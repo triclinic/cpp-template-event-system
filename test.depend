@@ -1,0 +1,15 @@
+# depslib dependency file v1.0
+1691276748 source:c:\users\Виталий\documents\program\test\main.cpp
+	<iostream>
+	"event.h"
+	"circular.h"
+
+1691240698 c:\users\Виталий\documents\program\test\statics.h
+
+1691276852 c:\users\Виталий\documents\program\test\circular.h
+	"statics.h"
+	<stdint.h>
+
+1691278275 c:\users\Виталий\documents\program\test\event.h
+	"circular.h"
+
