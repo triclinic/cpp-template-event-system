@@ -17,9 +17,12 @@ std::ostream& operator<<(std::ostream& os, const Buffer<T, s, IT>& b)
 }
 
 enum class vfoEvents {
+    EMPTY,
     KEYPAD,
     UPDATE,
-    EMPTY
+    ENCODER,
+    BEEP,
+    HALT,
 };
 
 template<class T = int, std::ostream *OS = nullptr>
@@ -126,10 +129,21 @@ public:
 };
 
 
-int test_handler(int val){
-    return -55 + val;
+void test_handler1(int val){
+    std::cout << "Called handler 1 with parameter = " << val << std::endl;
 }
 
+void test_handler2(int val){
+    std::cout << "Called handler 2 with parameter = " << val << std::endl;
+}
+
+void test_handler3(int val){
+    std::cout << "Called handler 3 with parameter = " << val << std::endl;
+}
+
+void test_handler4(int val){
+    std::cout << "Called handler 4 with parameter = " << val << std::endl;
+}
 
 int main()
 {
@@ -165,18 +179,34 @@ int main()
             << endl;
     }
     typedef EventRecord<vfoEvents, int> vfoEventRecord;
-    typedef HandlerRecord<vfoEventRecord, int> vfoHandlerRecord;
+    typedef HandlerRecord<vfoEventRecord> vfoHandlerRecord;
     typedef StackHandlerMapper<vfoHandlerRecord, 32u> vfoHandlerMapper;
     typedef EventLoop<vfoEventRecord, vfoHandlerMapper> vfoEventLoop;
 
-    vfoEventRecord evk(vfoEvents::KEYPAD, 3), eve(vfoEvents::EMPTY, 3);
-    vfoHandlerRecord hr(vfoEvents::EMPTY, test_handler);
+    const vfoHandlerRecord predefinitions[] = {
+                            {vfoEvents::BEEP, test_handler1},
+                            {vfoEvents::KEYPAD, test_handler1},
+                            {vfoEvents::ENCODER, test_handler2},
+                            {vfoEvents::HALT, test_handler3},
+                            {vfoEvents::UPDATE, test_handler4},
+                            vfoHandlerRecord{}};
+
+    //vfoEventRecord evk(vfoEvents::KEYPAD, 3), eve(vfoEvents::EMPTY, 3);
+    //vfoHandlerRecord hr(vfoEvents::EMPTY, test_handler1);
     vfoEventLoop app;
 
+    app.getMapper() << predefinitions << vfoHandlerRecord(vfoEvents::KEYPAD, test_handler4);
     //cout << "%%%" << hr(evk)<< "%%%" << hr(eve);
 
-    app.sendEvent(vfoEvents::KEYPAD, 3);
-    app.getMapper().addHandler(vfoEvents::KEYPAD, test_handler);
+    app.sendEvent(vfoEvents::BEEP, 1);
+    app.sendEvent(vfoEvents::HALT, 3);
+    app.sendEvent(vfoEvents::UPDATE, 4);
+    app.sendEvent(vfoEvents::KEYPAD, 1);
+    app.sendEvent(vfoEvents::KEYPAD, 1);
+    app.sendEvent(vfoEvents::ENCODER, 2);
+    //app.getMapper().addHandler(vfoEvents::KEYPAD, test_handler1);
+
+    app.getMapper() >> vfoEvents::KEYPAD >> vfoEvents::UPDATE;
 
     app.exec();
     return 0;

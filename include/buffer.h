@@ -48,6 +48,11 @@ public:
         return data[iter.getIndexByCount(i)];
     }
 
+    inline T& operator[](index_t i)
+    {
+        return data[iter.getIndexByCount(i)];
+    }
+
     inline index_t size() const
     {
         return iter.size();
@@ -79,6 +84,7 @@ public:
     }
 private:
     Buffer(const Buffer&) = delete;
+    Buffer& operator=(const Buffer&) = delete;
 
     IT iter;
     T data[SIZE];

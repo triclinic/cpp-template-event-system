@@ -4,7 +4,8 @@
 
 template<typename EV,
          typename HM,
-         //typename BG = BackgroundTaskPoller<>,
+         //typename TIM = TimerService<>,
+         //typename BG = void, //BackgroundTaskService<>,
          unsigned eventQueueSize = 32u>
 class EventLoop {
 
@@ -29,7 +30,6 @@ public:
             if(systemQueue.isNotEmpty()){
                 EV currentEvent = systemQueue.template pop<EV>();
                 mapper.handle(currentEvent);
-                break; //FIXME: For debug
             } else {
                 break;
             }
@@ -44,7 +44,9 @@ public:
 
 private:
     EventLoop(const EventLoop&) = delete;
+    EventLoop& operator=(const EventLoop&) = delete;
 
+    //TIM timerService;
     HM mapper;
     CircularBuffer<EV, eventQueueSize> systemQueue;
 };

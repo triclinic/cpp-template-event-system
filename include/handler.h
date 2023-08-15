@@ -20,7 +20,7 @@ public:
 
 template<
         typename ER,
-        typename RT = void
+        typename RT = void     // Handler return type
         >
 class HandlerRecord {
 public:
@@ -57,15 +57,14 @@ public:
         return (event.id == id);
     }
 
-    inline void bind(const id_t& id, const handler_t& handler)
-    {
-        this->id = id;
-        this->handler = handler;
-    }
-
     inline id_t getID() const
     {
         return id;
+    }
+
+    inline operator bool()
+    {
+        return handler != nullptr;
     }
 private:
     id_t id;
@@ -83,29 +82,62 @@ public:
 
     StackHandlerMapper() = default;
 
-    void handle(const typename HR::event_t& event)
+    inline void handle(const typename HR::event_t& event)
     {
-        if (lookup.isNotEmpty()){
-            for(index_t i = lookup.size(); i ; i--){
-                if (lookup[i - 1].corresponds(event)){
-                    lookup[i - 1](event);
-                    break;
-                }
+        for(index_t i = lookup.size(); i ; i--){
+            if (lookup[i - 1].corresponds(event)){
+                lookup[i - 1](event);
+                break;
             }
         }
     }
-    void addHandler(const typename HR::id_t& id, const typename HR::handler_t& handler)
+
+    inline void addHandler(const typename HR::id_t& id, const typename HR::handler_t& handler)
     {
         if (lookup.isNotFull()){
             lookup.push(HR(id, handler));
         }
     }
-    void deleteLastHandler(const typename HR::id_t& id)
+
+    inline void deleteLastHandler(const typename HR::id_t& id)
     {
-        //TODO: implement stacking
+        for(index_t i = lookup.size(); i ; i--){
+            if (id == lookup[i - 1].getID()){
+                for(index_t j = i; j < lookup.size(); j++){
+                    lookup[j - 1] = lookup[j];
+                }
+                lookup.template pop<HR>();
+                break;
+            }
+        }
     }
+
+    // Additional operators
+    inline StackHandlerMapper& operator<<(const HR& record)
+    {
+        if (lookup.isNotFull()){
+            lookup.push(record);
+        }
+        return *this;
+    }
+
+    inline StackHandlerMapper& operator<<(const HR * recordsPtr)
+    {
+        while(HR currentRecord = *recordsPtr++){
+            *this << currentRecord;
+        }
+        return *this;
+    }
+
+    inline StackHandlerMapper& operator>>(const typename HR::id_t& id)
+    {
+        deleteLastHandler(id);
+        return *this;
+    }
+
 private:
     StackHandlerMapper(const StackHandlerMapper&) = delete;
+    StackHandlerMapper& operator=(const StackHandlerMapper&) = delete;
 
     StackBuffer<HR, stackDepth> lookup;
 };
