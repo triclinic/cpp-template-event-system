@@ -11,10 +11,6 @@ class Buffer
 {
 public:
     typedef typename IT::index_t index_t;
-    //typedef typename T value_t;
-
-//    template<class TT, unsigned s, class ITT>
-//        friend std::ostream& operator<<(std::ostream& os, const Buffer<TT, s, ITT>& b);
 
     Buffer(): iter() {}
 
@@ -22,7 +18,7 @@ public:
     inline void push(U&& value)
     {
         if(isNotFull()) {
-            data[iter.getInputPosition()] = value;
+            data[iter.getInputPosition()] = std::move(value);
             iter.nextInput();
         }
     }
@@ -66,21 +62,6 @@ public:
     inline bool isNotFull() const
     {
         return iter.isNotCeil();
-    }
-
-    // Additional operators
-    template<typename U>
-    inline Buffer& operator<<(U&& value)
-    {
-        push(std::forward<U>(value));
-        return *this;
-    }
-
-    template<typename U>
-    inline Buffer& operator>>(U&& value)
-    {
-        value = pop<U>();
-        return *this;
     }
 private:
     Buffer(const Buffer&) = delete;

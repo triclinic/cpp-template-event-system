@@ -30,7 +30,7 @@ public:
     typedef RT return_t;
     typedef RT (*handler_t)(param_t);
 
-    explicit HandlerRecord():handler(nullptr), id(){}
+    explicit HandlerRecord(): id(), handler(nullptr){}
     HandlerRecord(id_t id, handler_t handler): id(id), handler(handler){}
 
     template<typename U = RT>
